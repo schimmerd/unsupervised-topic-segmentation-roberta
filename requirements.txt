@@ -1,0 +1,6 @@
+h5py==3.9.0
+numpy==1.25.0
+torch==2.0.1
+transformers==4.30.2
+nltk==3.8.1
+pandas==2.0.2
