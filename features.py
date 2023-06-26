@@ -1,17 +1,16 @@
 import pickle
 import torch as T
 
-from transformers import RobertaModel, RobertaTokenizer
-from pathlib import Path
-from src.dataset import PodcastDataset
 from tqdm import tqdm
+from transformers import RobertaModel, RobertaTokenizer
+
+from src.dataset import PodcastDataset
+from src.utils import get_file_list, upload_features
+from config import device, data_path, source_features_path, destination_feature_path, bucket_name
 
 
 model = RobertaModel.from_pretrained('roberta-base', output_hidden_states=True)
 tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
-
-
-device = T.device("cuda" if T.cuda.is_available() else "cpu")
 model.to(device)
 
 
@@ -42,20 +41,15 @@ def compute_roberta_embeddings(sentences, layer=-2):
     return embeddings
 
 
-def save_features(input_file_path, output_file_path):
+def save_features():
     model.eval()
 
-    podcast = PodcastDataset(input_file_path)
+    podcast = PodcastDataset(get_file_list(data_path))
 
     features = []
     for episode in tqdm(podcast.dataset, desc="Compute sentence embeddings"):
         features.append(compute_roberta_embeddings(episode[0]))
 
-    with open(output_file_path, 'wb') as file:
-        pickle.dump(features, file)
-
-
-if __name__ == '__main__':
-    path_to_data = Path("data/podcast")
-    files = [str(x) for x in path_to_data.glob("*.hdf5") if x.is_file()]
-    save_features(files, 'data/features/features_20230624')
+    with open(source_features_path, 'wb') as f:
+        pickle.dump(features, f)
+    # upload_features(bucket_name, source_features_path, destination_feature_path)

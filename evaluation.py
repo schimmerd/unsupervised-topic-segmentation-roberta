@@ -4,9 +4,17 @@ import pandas as pd
 
 from tqdm import tqdm
 from nltk.metrics.segmentation import pk, windowdiff
-from src.utils import find_peak_left, find_peak_right, get_local_maxima, evaluation_config, apply_random_breaks
+from src.utils import (
+    find_peak_left,
+    find_peak_right,
+    get_local_maxima,
+    evaluation_config,
+    apply_random_breaks,
+    get_file_list
+)
 from src.dataset import PodcastDataset
 from src.baseline import random_method, even_method, text_tiling_method
+from config import data_path, source_features_path, output_path
 
 
 def flatten_features(batches_features):
@@ -159,11 +167,11 @@ def baseline_eval(method, labels, n):
     print(f"Avg. WinDiff: {round(avg_windiff_all / n, 3)}")
 
 
-def evaluate_topic_segmention(features_path, file_list):
-    with open(features_path, 'rb') as f:
+def evaluate_topic_segmention():
+    with open(source_features_path, 'rb') as f:
         features = pickle.load(f)
 
-    podcast_dataset = PodcastDataset(file_list)
+    podcast_dataset = PodcastDataset(get_file_list(data_path))
     labels = podcast_dataset.labels
 
     dfs = []
@@ -216,11 +224,4 @@ def evaluate_topic_segmention(features_path, file_list):
 
     ##################### BASELINES ####################################################################################
 
-    return combined_df
-
-
-if __name__ == '__main__':
-    output_path = 'data/output/eval_output_20230624.csv'
-
-    output = evaluate_topic_segmention("data/features/features_20230624")
-    output.to_csv(output_path)
+    combined_df.to_csv(output_path)

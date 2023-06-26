@@ -1,10 +1,17 @@
 # Unsupervised Topic Segmentation of Podcasts using a pre-trained Transformer model
 
 ### Prerequisite 
+#### Install required packages
 ```bash
 pip install -r requirements.txt
 ```
-Entrypoint: `evaluation.evaluate_topic_segmention`
+#### Fetch pre-trained sentence embeddings
+```bash
+wget -P data/features https://storage.googleapis.com/unsupervised-topic-segmentation-seminar/features/embeddings                                                                               ─╯
+```
+```
+python -m evaluation.evaluate_topic_segmention
+```
 Output Path: `data/ouptut`
 
 ### Dataset

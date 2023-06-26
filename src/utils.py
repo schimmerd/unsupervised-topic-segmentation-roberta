@@ -1,5 +1,22 @@
+import os
 import itertools
 import random
+
+from pathlib import Path
+from google.cloud import storage
+
+
+def get_file_list(path):
+    path_to_data = Path(path)
+    return [str(x) for x in path_to_data.glob("*.hdf5") if x.is_file()]
+
+
+def upload_features(bucket_name, source_file_name, destination_blob_name):
+    storage_client = storage.Client(os.environ.get("project_id"))
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+    blob.upload_from_filename(source_file_name)
+
 
 def find_peak_left(smoothed_scores, index):
     """
