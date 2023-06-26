@@ -53,3 +53,7 @@ def save_features():
     with open(source_features_path, 'wb') as f:
         pickle.dump(features, f)
     # upload_features(bucket_name, source_features_path, destination_feature_path)
+
+
+if __name__ == '__main__':
+    save_features()

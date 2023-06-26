@@ -153,7 +153,7 @@ def compute_metrics(segmentation_pred_all, ground_truth_labels_all):
 def baseline_eval(method, labels, n):
     avg_pk_all = 0
     avg_windiff_all = 0
-    for _ in range(n):
+    for _ in tqdm(range(n)):
         predicted_topic_change_positions_all = []
         for label in labels:
             predicted_topic_change_positions_all.append(method(label.tolist()))
@@ -163,24 +163,26 @@ def baseline_eval(method, labels, n):
         avg_pk_all += avg_pk
         avg_windiff_all += avg_windiff
 
-    print(f"Avg. Pk: {round(avg_pk_all / n, 3)}")
+    print(f"\nAvg. Pk: {round(avg_pk_all / n, 3)}")
     print(f"Avg. WinDiff: {round(avg_windiff_all / n, 3)}")
 
 
 def evaluate_topic_segmention():
-    with open(source_features_path, 'rb') as f:
-        features = pickle.load(f)
+    try:
+        with open(source_features_path, 'rb') as f:
+            features = pickle.load(f)
+    except FileNotFoundError:
+        return f"File {source_features_path} not found. See README for details"
 
     podcast_dataset = PodcastDataset(get_file_list(data_path))
     labels = podcast_dataset.labels
 
     dfs = []
     current_pk = 1
-    current_windiff = 1
-    for index, config in tqdm(enumerate(evaluation_config()), desc="Evaluate configurations"):
+    for index, config in enumerate(tqdm(evaluation_config(), desc="Evaluate configurations")):
 
         predictions = []
-        for x in tqdm(features, desc="Calculate change point indexes"):
+        for x in features:
             x = flatten_features(x)
             x = create_blocks(x, config.get("SENTENCE_COMPARISON_WINDOW"))
             x = calc_similarity(x)
@@ -188,7 +190,7 @@ def evaluate_topic_segmention():
             x = depth_score(x)
 
             x_prediction = get_topic_change_indexes(x, config.get("TOPIC_CHANGE_THRESHOLD"))
-            x_prediction.append(0)
+            x_prediction.insert(0, 1)
             predictions.append(x_prediction)
 
         avg_pk, avg_windiff = compute_metrics(predictions, labels)
@@ -198,12 +200,10 @@ def evaluate_topic_segmention():
             "avg_windiff": avg_windiff
         })
 
-        if avg_pk < current_pk or avg_windiff < current_windiff:
+        if avg_pk < current_pk:
             print(f"\n[{index}] Avg. Pk: {round(avg_pk, 3)}")
             print(f"[{index}] Avg. WinDiff: {round(avg_windiff, 3)}")
-
             current_pk = avg_pk
-            current_windiff = avg_windiff
 
         dfs.append(pd.DataFrame.from_dict([config]))
 
@@ -212,16 +212,25 @@ def evaluate_topic_segmention():
     ##################### BASELINES ####################################################################################
 
     print("\n[Random]")
-    baseline_eval(random_method(labels), labels, 10)
+    baseline_eval(random_method, labels, 10)
 
     print("\n[Even]")
-    baseline_eval(even_method(labels), labels, 10)
+    baseline_eval(even_method, labels, 10)
 
     print("\n[TextTiling]")
+    tt_boundaries = []
     for episode in tqdm(podcast_dataset.dataset, desc="Compare against TextTiling method"):
         segmented_episode = apply_random_breaks(". ".join(episode[0]))
-        baseline_eval(text_tiling_method(segmented_episode), labels, 1)
+        tt_boundaries.append(text_tiling_method(segmented_episode))
+
+    avg_pk_tt, avg_windiff_tt = compute_metrics(tt_boundaries, labels)
+    print(f"Avg. Pk: {round(avg_pk_tt, 3)}")
+    print(f"Avg. WinDiff: {round(avg_windiff_tt, 3)}")
 
     ##################### BASELINES ####################################################################################
 
     combined_df.to_csv(output_path)
+
+
+if __name__ == '__main__':
+    evaluate_topic_segmention()

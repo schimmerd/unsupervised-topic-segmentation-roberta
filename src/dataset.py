@@ -20,11 +20,13 @@ class PodcastDataset:
 
         self.dataset = []
         self.labels = []
+
         for idx, (text, labels) in enumerate(self._extract_data()):
+
             episode = self._decode_episode(text)
             episode = self._cleansing(episode)
             self.dataset.append([episode, labels])
-            self.labels.append([labels])
+            self.labels.append(labels)
 
     def _extract_data(self):
         for file in self.file_list:

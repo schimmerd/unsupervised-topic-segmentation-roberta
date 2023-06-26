@@ -10,7 +10,7 @@ pip install -r requirements.txt
 wget -P data/features https://storage.googleapis.com/unsupervised-topic-segmentation-seminar/features/embeddings                                                                               ─╯
 ```
 ```
-python -m evaluation.evaluate_topic_segmention
+python -m evaluation
 ```
 Output Path: `data/ouptut`
 

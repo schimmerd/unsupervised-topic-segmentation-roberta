@@ -53,7 +53,7 @@ def get_local_maxima(array):
 
 def evaluation_config():
     SENTENCE_COMPARISON_WINDOW: list[int] = [10, 15, 20]
-    SMOOTHING_ITERS: list[int] = [2, 3, 6]
+    SMOOTHING_ITERS: list[int] = [2, 4, 6]
     SMOOTHING_WINDOW: list[int] = [1, 3, 5]
     TOPIC_CHANGE_THRESHOLD: list[float] = [0.6, 0.7, 0.8]
 
