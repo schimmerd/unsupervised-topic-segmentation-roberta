@@ -4,10 +4,12 @@ import torch as T
 from transformers import RobertaModel, RobertaTokenizer
 from pathlib import Path
 from src.dataset import PodcastDataset
+from tqdm import tqdm
 
 
 model = RobertaModel.from_pretrained('roberta-base', output_hidden_states=True)
 tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
+
 
 device = T.device("cuda" if T.cuda.is_available() else "cpu")
 model.to(device)
@@ -46,7 +48,7 @@ def save_features(input_file_path, output_file_path):
     podcast = PodcastDataset(input_file_path)
 
     features = []
-    for episode in podcast.dataset:
+    for episode in tqdm(podcast.dataset, desc="Compute sentence embeddings"):
         features.append(compute_roberta_embeddings(episode[0]))
 
     with open(output_file_path, 'wb') as file:
